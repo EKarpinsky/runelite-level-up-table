@@ -1,13 +1,13 @@
-package com.example;
+package com.skillunlock;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 
-public class ExamplePluginTest
+public class SkillUnlockPluginTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(ExamplePlugin.class);
+		ExternalPluginManager.loadBuiltin(SkillUnlockPlugin.class);
 		RuneLite.main(args);
 	}
 }

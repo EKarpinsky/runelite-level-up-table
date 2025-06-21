@@ -1,9 +1,46 @@
-.gradle
-build
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IntelliJ IDEA
 .idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse
+.classpath
 .project
 .settings/
-.classpath
+bin/
+
+# NetBeans
 nbactions.xml
 nb-configuration.xml
 nbproject/
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# RuneLite
+.runelite/
+
+# Package files
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Plugin specific
+skill-data-cache.json
+
+# Personal development scripts and launchers
+*.app/
+*.command
+run-plugin.sh
+create-desktop-launcher.sh
+check-deprecation.sh
