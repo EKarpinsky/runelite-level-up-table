@@ -1,3 +1,4 @@
+
 package com.runelite.skillunlocks.ui.components.cards;
 
 import lombok.Getter;

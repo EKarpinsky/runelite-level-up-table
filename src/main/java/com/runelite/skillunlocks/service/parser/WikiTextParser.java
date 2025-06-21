@@ -1,3 +1,5 @@
+
+
 package com.runelite.skillunlocks.service.parser;
 
 import com.runelite.skillunlocks.domain.model.SkillData;
@@ -13,16 +15,13 @@ public class WikiTextParser
 {
 	// Pattern to find the Level up table template - match until the closing }} at the start of a line
 	// This ensures we capture the entire template even with nested templates inside
-	private static final Pattern LEVEL_UP_TABLE_PATTERN = Pattern.compile("\\{\\{Level up table\\s*\\n([\\s\\S]*?)\\n\\}\\}", Pattern.MULTILINE);
+	private static final Pattern LEVEL_UP_TABLE_PATTERN = Pattern.compile("\\{\\{Level up table\\s*\\n([\\s\\S]*?)\\n}}", Pattern.MULTILINE);
 	
-	// Pattern to extract content from plink templates
-	// More comprehensive plink pattern that handles all parameters
-	private static final Pattern PLINK_PATTERN = Pattern.compile("\\{\\{plink\\|([^|}]+)(?:\\|[^}]*)*\\}\\}");
 	
 	// Pattern to clean wiki formatting
-	private static final Pattern WIKI_LINK_PATTERN = Pattern.compile("\\[\\[([^\\|\\]]+)(?:\\|([^\\]]+))?\\]\\]");
-	private static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\{\\{[^}]+\\}\\}");
-	private static final Pattern SKILL_COMPARE_PATTERN = Pattern.compile("\\{\\{SCP\\|([^}|]+)(?:\\|([^}]+))?\\}\\}");
+	private static final Pattern WIKI_LINK_PATTERN = Pattern.compile("\\[\\[([^|\\]]+)(?:\\|([^]]+))?]]");
+	private static final Pattern TEMPLATE_PATTERN = Pattern.compile("\\{\\{[^}]+}}");
+	private static final Pattern SKILL_COMPARE_PATTERN = Pattern.compile("\\{\\{SCP\\|([^}|]+)(?:\\|([^}]+))?}}");
 	
 	public SkillData parseSkillPage(Skill skill, String wikiText)
 	{
@@ -178,29 +177,13 @@ public class WikiTextParser
 		// Handle plink templates - extract txt parameter if present, otherwise use item name
 		// Also consume trailing pluralization suffixes (e/s) after the template
 		String cleaned = text;
-		Pattern plinkWithTxtPattern = Pattern.compile("\\{\\{plink\\|[^|}]+(?:\\|[^|}]*)*\\|txt=([^|}]+)(?:\\|[^}]*)*\\}\\}[es]?");
-		Matcher plinkTxtMatcher = plinkWithTxtPattern.matcher(cleaned);
-		StringBuilder plinkTxtResult = new StringBuilder();
-		while (plinkTxtMatcher.find())
-		{
-			String displayText = plinkTxtMatcher.group(1);
-			plinkTxtMatcher.appendReplacement(plinkTxtResult, displayText);
-		}
-		plinkTxtMatcher.appendTail(plinkTxtResult);
-		cleaned = plinkTxtResult.toString();
+		Pattern plinkWithTxtPattern = Pattern.compile("\\{\\{plink\\|[^|}]+(?:\\|[^|}]*)*\\|txt=([^|}]+)(?:\\|[^}]*)*}}[es]?");
+		cleaned = replacePlinkTemplate(cleaned, plinkWithTxtPattern);
 		
 		// Now handle regular plink templates without txt parameter
 		// Also consume trailing pluralization suffixes (e/s) after the template
-		Pattern simplePlinkPattern = Pattern.compile("\\{\\{plink\\|([^|}]+)(?:\\|[^}]*)*\\}\\}[es]?");
-		Matcher simplePlinkMatcher = simplePlinkPattern.matcher(cleaned);
-		StringBuilder simplePlinkResult = new StringBuilder();
-		while (simplePlinkMatcher.find())
-		{
-			String itemName = simplePlinkMatcher.group(1);
-			simplePlinkMatcher.appendReplacement(simplePlinkResult, itemName);
-		}
-		simplePlinkMatcher.appendTail(simplePlinkResult);
-		cleaned = simplePlinkResult.toString();
+		Pattern simplePlinkPattern = Pattern.compile("\\{\\{plink\\|([^|}]+)(?:\\|[^}]*)*}}[es]?");
+		cleaned = replacePlinkTemplate(cleaned, simplePlinkPattern);
 		
 		// Handle SCP templates (e.g., {{SCP|Quest|Level}} becomes "Quest Level")
 		Matcher scpMatcher = SKILL_COMPARE_PATTERN.matcher(cleaned);
@@ -239,6 +222,19 @@ public class WikiTextParser
 		return cleaned;
 	}
 	
+	private String replacePlinkTemplate(String text, Pattern pattern)
+	{
+		Matcher matcher = pattern.matcher(text);
+		StringBuilder result = new StringBuilder();
+		while (matcher.find())
+		{
+			String replacement = matcher.group(1);
+			matcher.appendReplacement(result, replacement);
+		}
+		matcher.appendTail(result);
+		return result.toString();
+	}
+	
 	private SkillUnlock.UnlockType determineUnlockType(String unlockText, Skill skill)
 	{
 		String lower = unlockText.toLowerCase();
@@ -267,7 +263,7 @@ public class WikiTextParser
 		{
 			return SkillUnlock.UnlockType.ACTIVITY;
 		}
-		else if (isItemUnlock(lower, skill))
+		else if (isItemUnlock(lower))
 		{
 			return SkillUnlock.UnlockType.ITEM;
 		}
@@ -275,7 +271,7 @@ public class WikiTextParser
 		return SkillUnlock.UnlockType.OTHER;
 	}
 	
-	private boolean isItemUnlock(String text, Skill skill)
+	private boolean isItemUnlock(String text)
 	{
 		return text.contains("make") || text.contains("craft") || text.contains("smith") ||
 			   text.contains("cook") || text.contains("catch") || text.contains("mine") ||

@@ -14,7 +14,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * Repository for managing skill unlock data
@@ -124,77 +123,9 @@ public class UnlockRepository
 		return skillDataMap.get(skill);
 	}
 	
-	public List<SkillUnlock> getUnlocksForSkillAndLevel(Skill skill, int level)
-	{
-		SkillData data = skillDataMap.get(skill);
-		if (data == null)
-		{
-			return Collections.emptyList();
-		}
-		
-		return data.getUnlocksForLevel(level);
-	}
 	
-	public NavigableMap<Integer, List<SkillUnlock>> getUnlocksUpToLevel(Skill skill, int maxLevel)
-	{
-		SkillData data = skillDataMap.get(skill);
-		if (data == null)
-		{
-			return new TreeMap<>();
-		}
-		
-		NavigableMap<Integer, List<SkillUnlock>> result = new TreeMap<>();
-		data.getUnlocksUpToLevel(maxLevel).forEach((level, levelData) -> 
-			result.put(level, levelData.getUnlocks())
-		);
-		
-		return result;
-	}
 	
-	public List<SkillUnlock> searchUnlocks(String searchTerm)
-	{
-		String lowerSearch = searchTerm.toLowerCase();
-		List<SkillUnlock> results = new ArrayList<>();
-		
-		for (SkillData skillData : skillDataMap.values())
-		{
-			results.addAll(
-				skillData.getAllUnlocks().stream()
-					.filter(unlock -> 
-						unlock.getName().toLowerCase().contains(lowerSearch) ||
-						unlock.getDescription().toLowerCase().contains(lowerSearch)
-					)
-					.collect(Collectors.toList())
-			);
-		}
-		
-		// Sort by level
-		results.sort(Comparator.comparingInt(SkillUnlock::getLevel));
-		return results;
-	}
 	
-	public List<SkillUnlock> getNextUnlocks(Map<Skill, Integer> currentLevels)
-	{
-		List<SkillUnlock> nextUnlocks = new ArrayList<>();
-		
-		for (Map.Entry<Skill, Integer> entry : currentLevels.entrySet())
-		{
-			Skill skill = entry.getKey();
-			int currentLevel = entry.getValue();
-			
-			SkillData data = skillDataMap.get(skill);
-			if (data != null)
-			{
-				var nextLevelData = data.getNextUnlock(currentLevel);
-				if (nextLevelData != null)
-				{
-					nextUnlocks.addAll(nextLevelData.getUnlocks());
-				}
-			}
-		}
-		
-		return nextUnlocks;
-	}
 	
 	public void shutdown()
 	{

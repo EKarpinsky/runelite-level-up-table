@@ -1,7 +1,6 @@
 package com.runelite.skillunlocks.ui.components.controls;
 
 import net.runelite.client.ui.ColorScheme;
-import net.runelite.client.ui.components.IconTextField;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -13,7 +12,7 @@ import java.awt.event.MouseEvent;
 
 public class SearchField extends JPanel
 {
-	private final IconTextField searchField;
+	private final JTextField searchField;
 	private final JLabel clearButton;
 	private final String placeholderText = "Search unlocks...";
 	private boolean showingPlaceholder = true;
@@ -27,16 +26,28 @@ public class SearchField extends JPanel
 			new EmptyBorder(0, 5, 0, 5)
 		));
 		
+		// Create panel for search icon and field
+		JPanel searchPanel = new JPanel(new BorderLayout(5, 0));
+		searchPanel.setBackground(new Color(40, 40, 45));
+		
+		// Search icon
+		JLabel searchIcon = new JLabel("🔍");
+		searchIcon.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+		searchIcon.setBorder(new EmptyBorder(0, 5, 0, 0));
+		searchPanel.add(searchIcon, BorderLayout.WEST);
+		
 		// Search field
-		searchField = new IconTextField();
-		searchField.setIcon(IconTextField.Icon.SEARCH);
+		searchField = new JTextField();
 		searchField.setBackground(new Color(40, 40, 45));
-		searchField.setHoverBackgroundColor(new Color(50, 50, 55));
+		searchField.setForeground(Color.WHITE);
 		searchField.setBorder(null);
+		searchField.setCaretColor(Color.WHITE);
+		searchPanel.add(searchField, BorderLayout.CENTER);
 		
 		// Set placeholder
 		searchField.setText(placeholderText);
 		searchField.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+		
 		
 		// Clear button
 		clearButton = new JLabel("✕");
@@ -117,7 +128,7 @@ public class SearchField extends JPanel
 			}
 		});
 		
-		add(searchField, BorderLayout.CENTER);
+		add(searchPanel, BorderLayout.CENTER);
 		add(clearButton, BorderLayout.EAST);
 		
 		// Keyboard shortcut
@@ -166,7 +177,7 @@ public class SearchField extends JPanel
 		}
 		
 		// Remove control characters and normalize whitespace
-		text = text.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "");
+		text = text.replaceAll("\\p{Cntrl}&&[^\\r\\n\\t]", "");
 		text = text.replaceAll("\\s+", " ");
 		text = text.trim();
 		
@@ -181,36 +192,8 @@ public class SearchField extends JPanel
 	
 	public void addSearchListener(javax.swing.event.DocumentListener listener)
 	{
-		// Wrap the listener to only fire when not showing placeholder
-		searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener()
-		{
-			@Override
-			public void insertUpdate(javax.swing.event.DocumentEvent e)
-			{
-				if (!showingPlaceholder)
-				{
-					listener.insertUpdate(e);
-				}
-			}
-			
-			@Override
-			public void removeUpdate(javax.swing.event.DocumentEvent e)
-			{
-				if (!showingPlaceholder)
-				{
-					listener.removeUpdate(e);
-				}
-			}
-			
-			@Override
-			public void changedUpdate(javax.swing.event.DocumentEvent e)
-			{
-				if (!showingPlaceholder)
-				{
-					listener.changedUpdate(e);
-				}
-			}
-		});
+		// Directly add the listener - getSearchText() already handles placeholder checking
+		searchField.getDocument().addDocumentListener(listener);
 	}
 	
 	@Override

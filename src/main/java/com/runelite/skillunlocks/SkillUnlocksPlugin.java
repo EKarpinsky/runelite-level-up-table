@@ -6,6 +6,7 @@ import com.runelite.skillunlocks.cache.CacheManager;
 import com.runelite.skillunlocks.api.WikiApiClient;
 import com.runelite.skillunlocks.domain.repository.UnlockRepository;
 import com.runelite.skillunlocks.ui.SkillUnlocksPanel;
+import com.runelite.skillunlocks.util.IconGenerator;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -26,7 +27,6 @@ import javax.swing.SwingUtilities;
 
 /**
  * Main plugin class for Skill Unlocks
- * 
  * This plugin fetches and displays skill unlock information from the OSRS Wiki,
  * showing what items, abilities, and content become available at each level.
  */
@@ -61,12 +61,12 @@ public class SkillUnlocksPlugin extends Plugin
 	private UnlockRepository repository;
 
 	@Override
-	protected void startUp() throws Exception
+	protected void startUp()
 	{
 		log.info("Skill Unlocks plugin started!");
 		
 		// Initialize services
-		WikiApiClient wikiApiClient = new WikiApiClient(httpClient, gson);
+		WikiApiClient wikiApiClient = new WikiApiClient(httpClient);
 		CacheManager cacheManager = new CacheManager();
 		repository = new UnlockRepository(wikiApiClient, cacheManager);
 		
@@ -86,7 +86,7 @@ public class SkillUnlocksPlugin extends Plugin
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	protected void shutDown()
 	{
 		log.info("Skill Unlocks plugin stopped!");
 		
@@ -114,6 +114,7 @@ public class SkillUnlocksPlugin extends Plugin
 	}
 
 	@Subscribe
+	@SuppressWarnings("unused")
 	public void onGameStateChanged(GameStateChanged gameStateChanged)
 	{
 		if (panel != null)
@@ -129,6 +130,7 @@ public class SkillUnlocksPlugin extends Plugin
 	}
 
 	@Subscribe
+	@SuppressWarnings("unused")
 	public void onStatChanged(StatChanged statChanged)
 	{
 		if (panel != null)
@@ -144,6 +146,7 @@ public class SkillUnlocksPlugin extends Plugin
 	}
 
 	@Provides
+	@SuppressWarnings("unused")
 	SkillUnlocksConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(SkillUnlocksConfig.class);
@@ -178,22 +181,16 @@ public class SkillUnlocksPlugin extends Plugin
 		// Enable anti-aliasing
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		
-		// Draw background circle
-		g2d.setColor(new Color(45, 45, 50));
-		g2d.fillOval(2, 2, 28, 28);
-		
-		// Draw border
-		g2d.setColor(new Color(46, 213, 115));
-		g2d.setStroke(new BasicStroke(2));
-		g2d.drawOval(3, 3, 26, 26);
-		
-		// Draw level up arrow
-		g2d.setColor(new Color(46, 213, 115));
-		int[] xPoints = {16, 22, 19, 19, 13, 13, 10};
-		int[] yPoints = {6, 14, 14, 24, 24, 14, 14};
-		g2d.fillPolygon(xPoints, yPoints, 7);
+		// Draw icon
+		drawIcon(g2d);
 		
 		g2d.dispose();
 		return icon;
+	}
+	
+	private void drawIcon(Graphics2D g2d)
+	{
+		// Use shared icon drawing logic from IconGenerator
+		IconGenerator.drawLevelUpIcon(g2d);
 	}
 }

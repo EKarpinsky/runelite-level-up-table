@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Client for fetching skill data from the OSRS Wiki API
- * 
  * Handles all communication with the wiki, including fetching page content
  * and delegating parsing to the WikiTextParser.
  */
@@ -60,7 +59,6 @@ public class WikiApiClient
 	}
 	
 	private final OkHttpClient httpClient;
-	private final Gson gson;
 	private final WikiTextParser parser;
 	
 	// Rate limiting - allow 1 request per second
@@ -68,13 +66,12 @@ public class WikiApiClient
 	private static final long MIN_REQUEST_INTERVAL_MS = 1000;
 	
 	@Inject
-	public WikiApiClient(OkHttpClient httpClient, Gson gson)
+	public WikiApiClient(OkHttpClient httpClient)
 	{
 		this.httpClient = httpClient.newBuilder()
 			.connectTimeout(30, TimeUnit.SECONDS)
 			.readTimeout(30, TimeUnit.SECONDS)
 			.build();
-		this.gson = gson;
 		this.parser = new WikiTextParser();
 	}
 	
@@ -176,7 +173,7 @@ public class WikiApiClient
 		}
 		catch (Exception e)
 		{
-			log.error("Failed to parse wiki response: " + e.getMessage());
+			log.error("Failed to parse wiki response: {}", e.getMessage());
 			return null;
 		}
 	}
