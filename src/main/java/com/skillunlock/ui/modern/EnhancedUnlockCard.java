@@ -1,6 +1,7 @@
 package com.skillunlock.ui.modern;
 
 import com.skillunlock.data.SkillUnlock;
+import lombok.Getter;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,8 @@ public class EnhancedUnlockCard extends JPanel
 	private static final Color CARD_BG_NEXT = new Color(255, 234, 167, 20);
 	private static final Color CARD_BG_LOCKED = new Color(45, 45, 50);
 	
-	private final SkillUnlock unlock;
+	@Getter
+    private final SkillUnlock unlock;
 	private final int playerLevel;
 	private final net.runelite.api.Skill skill;
 	private boolean isHovered = false;
@@ -43,8 +45,7 @@ public class EnhancedUnlockCard extends JPanel
 	private float expandProgress = 0f;
 	private Timer hoverTimer;
 	private Timer expandTimer;
-	private JPanel detailPanel;
-	private Rectangle wikiButtonBounds = null;
+    private Rectangle wikiButtonBounds = null;
 	private Rectangle copyButtonBounds = null;
 	private Rectangle xpButtonBounds = null;
 	private boolean wikiHovered = false;
@@ -406,8 +407,7 @@ public class EnhancedUnlockCard extends JPanel
 	private void drawExpandedContent(Graphics2D g2d, int x, int y, int width, float progress)
 	{
 		// Fade in the expanded content
-		float alpha = progress;
-		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+        g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, progress));
 		
 		// Calculate expanded height based on content
 		int expandedHeight = calculateExpandedHeight();
@@ -545,14 +545,13 @@ public class EnhancedUnlockCard extends JPanel
 	
 	private Color blendColors(Color c1, Color c2, float ratio)
 	{
-		float r = ratio;
-		float ir = 1.0f - r;
+        float ir = 1.0f - ratio;
 		
 		return new Color(
-			(int)(c1.getRed() * ir + c2.getRed() * r),
-			(int)(c1.getGreen() * ir + c2.getGreen() * r),
-			(int)(c1.getBlue() * ir + c2.getBlue() * r),
-			(int)(c1.getAlpha() * ir + c2.getAlpha() * r)
+			(int)(c1.getRed() * ir + c2.getRed() * ratio),
+			(int)(c1.getGreen() * ir + c2.getGreen() * ratio),
+			(int)(c1.getBlue() * ir + c2.getBlue() * ratio),
+			(int)(c1.getAlpha() * ir + c2.getAlpha() * ratio)
 		);
 	}
 	
@@ -575,13 +574,8 @@ public class EnhancedUnlockCard extends JPanel
 		sb.append("</html>");
 		return sb.toString();
 	}
-	
-	public SkillUnlock getUnlock()
-	{
-		return unlock;
-	}
-	
-	private void toggleExpanded()
+
+    private void toggleExpanded()
 	{
 		isExpanded = !isExpanded;
 		expandTimer.start();
@@ -605,9 +599,7 @@ public class EnhancedUnlockCard extends JPanel
 		popup.setBorder(BorderFactory.createLineBorder(new Color(60, 60, 65)));
 		
 		// View on Wiki
-		JMenuItem wikiItem = createMenuItem("View on OSRS Wiki", () -> {
-			openWikiPage();
-		});
+		JMenuItem wikiItem = createMenuItem("View on OSRS Wiki", this::openWikiPage);
 		popup.add(wikiItem);
 		
 		// Copy name
@@ -678,10 +670,6 @@ public class EnhancedUnlockCard extends JPanel
 			{
 				pageName = pageName + " Teleport";
 			}
-		}
-		else if (unlockName.toLowerCase().contains("spell"))
-		{
-			// Keep spell names as is
 		}
 		else if (unlockName.toLowerCase().contains("prayer"))
 		{

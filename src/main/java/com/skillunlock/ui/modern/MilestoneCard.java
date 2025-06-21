@@ -1,5 +1,6 @@
 package com.skillunlock.ui.modern;
 
+import lombok.Getter;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 
@@ -24,20 +25,20 @@ public class MilestoneCard extends JPanel
 	private final int itemCount;
 	private final int startLevel;
 	private final int endLevel;
-	private final JPanel contentPanel;
-	private boolean expanded;
-	private boolean autoExpand;
-	private float expansionProgress = 0f;
+	@Getter
+    private final JPanel contentPanel;
+	@Getter
+    private boolean expanded;
+    private float expansionProgress;
 	private Timer expansionTimer;
-	private Color milestoneColor;
+	private final Color milestoneColor;
 	
 	public MilestoneCard(String levelRange, int itemCount, boolean startExpanded)
 	{
 		this.levelRange = levelRange;
 		this.itemCount = itemCount;
 		this.expanded = startExpanded;
-		this.autoExpand = startExpanded;
-		this.expansionProgress = expanded ? 1f : 0f;
+        this.expansionProgress = expanded ? 1f : 0f;
 		
 		// Parse level range
 		int[] levels = parseLevelRange(levelRange);
@@ -332,13 +333,8 @@ public class MilestoneCard extends JPanel
 			toggleExpanded();
 		}
 	}
-	
-	public boolean isExpanded()
-	{
-		return expanded;
-	}
-	
-	public void addContent(Component component)
+
+    public void addContent(Component component)
 	{
 		contentPanel.add(component);
 		if (contentPanel.getComponentCount() > 1)
@@ -351,17 +347,7 @@ public class MilestoneCard extends JPanel
 	{
 		contentPanel.removeAll();
 	}
-	
-	public JPanel getContentPanel()
-	{
-		return contentPanel;
-	}
-	
-	public boolean shouldAutoExpand()
-	{
-		return autoExpand;
-	}
-	
+
 	/**
 	 * Cleanup method to stop timers and release resources
 	 */

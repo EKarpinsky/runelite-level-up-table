@@ -24,8 +24,7 @@ public class CacheManager
 	private static final String CACHE_DIR = "level-up-table";
 	private static final String CACHE_FILE = "skill-data-cache.json";
 	private final Gson gson;
-	private final Path cacheDirectory;
-	private final Path cacheFile;
+    private final Path cacheFile;
 	
 	@Inject
 	public CacheManager()
@@ -34,8 +33,8 @@ public class CacheManager
 			.setPrettyPrinting()
 			.registerTypeAdapter(Instant.class, new InstantTypeAdapter())
 			.create();
-		
-		this.cacheDirectory = Paths.get(RuneLite.RUNELITE_DIR.toString(), CACHE_DIR);
+
+        Path cacheDirectory = Paths.get(RuneLite.RUNELITE_DIR.toString(), CACHE_DIR);
 		this.cacheFile = cacheDirectory.resolve(CACHE_FILE);
 		
 		try

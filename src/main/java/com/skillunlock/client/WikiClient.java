@@ -118,7 +118,7 @@ public class WikiClient
 		// Always go directly to the Level_up_table subpage
 		String levelUpPageName = pageName + "/Level_up_table";
 
-		String encodedPageName = URLEncoder.encode(levelUpPageName, StandardCharsets.UTF_8.toString());
+		String encodedPageName = URLEncoder.encode(levelUpPageName, StandardCharsets.UTF_8);
 		String url = String.format("%s?action=query&prop=revisions&titles=%s&rvslots=*&rvprop=content&format=json",
 			WIKI_API_URL, encodedPageName);
 		
@@ -134,11 +134,11 @@ public class WikiClient
 				log.error("Failed to fetch wiki page: {} - {}", levelUpPageName, response.code());
 				return null;
 			}
-			
-			String body = response.body().string();
 
-			String wikiText = extractWikiText(body);
-			return wikiText;
+            assert response.body() != null;
+            String body = response.body().string();
+
+            return extractWikiText(body);
 		}
 	}
 	

@@ -40,14 +40,13 @@ public class ModernSkillUnlockPanel extends PluginPanel
 	private EnhancedSearchField searchField;
 	private JButton refreshButton;
 	private JButton viewModeButton;
-	private JScrollPane scrollPane;
-	private JPanel contentPanel;
+    private JPanel contentPanel;
 	private JLabel statusLabel;
 	
 	// State
 	private Skill selectedSkill = null;
 	private final Map<Skill, Integer> playerLevels = new HashMap<>();
-	private List<MilestoneCard> milestoneCards = new ArrayList<>();
+	private final List<MilestoneCard> milestoneCards = new ArrayList<>();
 	private boolean compactMode = false;
 	private javax.swing.Timer refreshButtonResetTimer;
 	
@@ -138,8 +137,8 @@ public class ModernSkillUnlockPanel extends PluginPanel
 		contentPanel = new JPanel();
 		contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
 		contentPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
-		
-		scrollPane = new JScrollPane(contentPanel);
+
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -333,7 +332,7 @@ public class ModernSkillUnlockPanel extends PluginPanel
 			int end = (i < milestones.length - 1) ? milestones[i + 1] - 1 : 99;
 			
 			String range;
-			if (start == 1 && end == 9)
+			if (start == 1)
 			{
 				range = "Levels 1-9";
 			}

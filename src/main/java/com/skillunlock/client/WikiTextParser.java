@@ -75,13 +75,13 @@ public class WikiTextParser
 				if (equalsIndex != -1)
 				{
 					String paramName = part.substring(0, equalsIndex).trim();
-					String content = part.substring(equalsIndex + 1);
+					StringBuilder content = new StringBuilder(part.substring(equalsIndex + 1));
 					
 					// Continue collecting content until we hit the next parameter
 					int j = i + 1;
 					while (j < parts.length && !parts[j].matches("(?s)^\\s*(freeplay|members)(\\d+|all)\\s*=.*"))
 					{
-						content += "|" + parts[j];
+						content.append("|").append(parts[j]);
 						j++;
 					}
 					
@@ -92,7 +92,7 @@ public class WikiTextParser
 						String memberType = paramMatcher.group(1);
 						String levelStr = paramMatcher.group(2);
 						
-						if (!content.trim().isEmpty())
+						if (!content.toString().trim().isEmpty())
 						{
 							nonEmptyParams++;
 							
@@ -101,16 +101,16 @@ public class WikiTextParser
 							{
 								// For now, we'll add these to level 1 with a special marker
 								// In the future, we might want to handle these differently
-								parseUnlocksFromContent(content, 1, memberType, skillData);
+								parseUnlocksFromContent(content.toString(), 1, memberType, skillData);
 							}
 							else
 							{
 								int level = Integer.parseInt(levelStr);
 								if (level == 1 || level == 10 || level == 50 || level == 99) {
 									log.debug("Content for {} level {}: [{}]", skillData.getSkill(), level, 
-										content.length() > 150 ? content.substring(0, 150) + "..." : content);
+										content.length() > 150 ? content.substring(0, 150) + "..." : content.toString());
 								}
-								parseUnlocksFromContent(content, level, memberType, skillData);
+								parseUnlocksFromContent(content.toString(), level, memberType, skillData);
 							}
 						}
 					}
@@ -149,7 +149,7 @@ public class WikiTextParser
 	{
 		String cleanedUnlock = cleanUnlockText(unlockLine);
 		
-		if (!cleanedUnlock.isEmpty() && cleanedUnlock.length() > 2)
+		if (cleanedUnlock.length() > 2)
 		{
 			// Extract requirements if present (text in parentheses)
 			String requirements = "";
@@ -180,7 +180,7 @@ public class WikiTextParser
 		String cleaned = text;
 		Pattern plinkWithTxtPattern = Pattern.compile("\\{\\{plink\\|[^|}]+(?:\\|[^|}]*)*\\|txt=([^|}]+)(?:\\|[^}]*)*\\}\\}[es]?");
 		Matcher plinkTxtMatcher = plinkWithTxtPattern.matcher(cleaned);
-		StringBuffer plinkTxtResult = new StringBuffer();
+		StringBuilder plinkTxtResult = new StringBuilder();
 		while (plinkTxtMatcher.find())
 		{
 			String displayText = plinkTxtMatcher.group(1);
@@ -193,7 +193,7 @@ public class WikiTextParser
 		// Also consume trailing pluralization suffixes (e/s) after the template
 		Pattern simplePlinkPattern = Pattern.compile("\\{\\{plink\\|([^|}]+)(?:\\|[^}]*)*\\}\\}[es]?");
 		Matcher simplePlinkMatcher = simplePlinkPattern.matcher(cleaned);
-		StringBuffer simplePlinkResult = new StringBuffer();
+		StringBuilder simplePlinkResult = new StringBuilder();
 		while (simplePlinkMatcher.find())
 		{
 			String itemName = simplePlinkMatcher.group(1);
@@ -204,7 +204,7 @@ public class WikiTextParser
 		
 		// Handle SCP templates (e.g., {{SCP|Quest|Level}} becomes "Quest Level")
 		Matcher scpMatcher = SKILL_COMPARE_PATTERN.matcher(cleaned);
-		StringBuffer scpResult = new StringBuffer();
+		StringBuilder scpResult = new StringBuilder();
 		while (scpMatcher.find())
 		{
 			String skill = scpMatcher.group(1);
@@ -217,7 +217,7 @@ public class WikiTextParser
 		
 		// Convert wiki links to plain text
 		Matcher linkMatcher = WIKI_LINK_PATTERN.matcher(cleaned);
-		StringBuffer linkResult = new StringBuffer();
+		StringBuilder linkResult = new StringBuilder();
 		while (linkMatcher.find())
 		{
 			String replacement = linkMatcher.group(2) != null ? linkMatcher.group(2) : linkMatcher.group(1);

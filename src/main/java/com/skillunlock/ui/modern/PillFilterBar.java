@@ -1,5 +1,7 @@
 package com.skillunlock.ui.modern;
 
+import lombok.Getter;
+import lombok.Setter;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 
@@ -15,7 +17,8 @@ import java.util.List;
 
 public class PillFilterBar extends JPanel
 {
-	public enum FilterType
+	@Getter
+    public enum FilterType
 	{
 		ALL("All"),
 		NEXT_5("Next 5"),
@@ -32,12 +35,8 @@ public class PillFilterBar extends JPanel
 		{
 			this.displayName = displayName;
 		}
-		
-		public String getDisplayName()
-		{
-			return displayName;
-		}
-	}
+
+    }
 	
 	private static final int PILL_HEIGHT = 28;
 	private static final int PILL_PADDING = 16;
@@ -47,9 +46,11 @@ public class PillFilterBar extends JPanel
 	private static final Color PILL_HOVER = new Color(60, 60, 65);
 	
 	private final List<PillButton> pills = new ArrayList<>();
-	private FilterType selectedFilter = FilterType.ALL;
-	private ActionListener filterChangeListener;
-	private JLabel resultCountLabel;
+	@Getter
+    private FilterType selectedFilter = FilterType.ALL;
+	@Setter
+    private ActionListener filterChangeListener;
+	private final JLabel resultCountLabel;
 	
 	public PillFilterBar()
 	{
@@ -210,13 +211,12 @@ public class PillFilterBar extends JPanel
 		
 		private Color blendColors(Color c1, Color c2, float ratio)
 		{
-			float r = ratio;
-			float ir = 1.0f - r;
+            float ir = 1.0f - ratio;
 			
 			return new Color(
-				(int)(c1.getRed() * ir + c2.getRed() * r),
-				(int)(c1.getGreen() * ir + c2.getGreen() * r),
-				(int)(c1.getBlue() * ir + c2.getBlue() * r)
+				(int)(c1.getRed() * ir + c2.getRed() * ratio),
+				(int)(c1.getGreen() * ir + c2.getGreen() * ratio),
+				(int)(c1.getBlue() * ir + c2.getBlue() * ratio)
 			);
 		}
 	}
@@ -242,18 +242,8 @@ public class PillFilterBar extends JPanel
 			filterChangeListener.actionPerformed(null);
 		}
 	}
-	
-	public FilterType getSelectedFilter()
-	{
-		return selectedFilter;
-	}
-	
-	public void setFilterChangeListener(ActionListener listener)
-	{
-		this.filterChangeListener = listener;
-	}
-	
-	public void updateResultCount(int shown, int total)
+
+    public void updateResultCount(int shown, int total)
 	{
 		if (shown == total)
 		{

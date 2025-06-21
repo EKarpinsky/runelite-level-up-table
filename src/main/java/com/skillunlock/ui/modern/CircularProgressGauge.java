@@ -81,8 +81,8 @@ public class CircularProgressGauge extends JPanel
 		g2d.setStroke(new BasicStroke(STROKE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 		g2d.setColor(TRACK_COLOR);
 		g2d.draw(new Ellipse2D.Float(
-			centerX - radius + STROKE_WIDTH / 2,
-			centerY - radius + STROKE_WIDTH / 2,
+			centerX - radius + (float) STROKE_WIDTH / 2,
+			centerY - radius + (float) STROKE_WIDTH / 2,
 			GAUGE_SIZE - STROKE_WIDTH,
 			GAUGE_SIZE - STROKE_WIDTH
 		));
@@ -90,14 +90,10 @@ public class CircularProgressGauge extends JPanel
 		// Draw progress arc
 		if (animatedProgress > 0)
 		{
-			// Gradient for progress
-			Color progressStart = PROGRESS_COLOR;
-			Color progressEnd = animatedProgress >= 1f ? MILESTONE_COLOR : PROGRESS_COLOR.brighter();
-			
-			g2d.setColor(progressStart);
+            g2d.setColor(PROGRESS_COLOR);
 			Arc2D progressArc = new Arc2D.Float(
-				centerX - radius + STROKE_WIDTH / 2,
-				centerY - radius + STROKE_WIDTH / 2,
+				centerX - radius + (float) STROKE_WIDTH / 2,
+				centerY - radius + (float) STROKE_WIDTH / 2,
 				GAUGE_SIZE - STROKE_WIDTH,
 				GAUGE_SIZE - STROKE_WIDTH,
 				90, // Start at top
@@ -129,8 +125,8 @@ public class CircularProgressGauge extends JPanel
 			if (animatedProgress >= milestone)
 			{
 				double angle = Math.toRadians(90 - milestone * 360);
-				int markerX = centerX + (int)(Math.cos(angle) * (radius - STROKE_WIDTH / 2));
-				int markerY = centerY - (int)(Math.sin(angle) * (radius - STROKE_WIDTH / 2));
+				int markerX = centerX + (int)(Math.cos(angle) * (radius - (double) STROKE_WIDTH / 2));
+				int markerY = centerY - (int)(Math.sin(angle) * (radius - (double) STROKE_WIDTH / 2));
 				
 				// Outer glow
 				g2d.setColor(new Color(255, 215, 0, 50));
