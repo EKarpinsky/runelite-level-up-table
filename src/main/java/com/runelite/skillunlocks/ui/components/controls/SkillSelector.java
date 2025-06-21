@@ -16,9 +16,11 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.io.Serializable;
 
-public class SkillSelector extends JPanel
+public class SkillSelector extends JPanel implements Serializable
 {
+	private static final long serialVersionUID = 1L;
 	private static final int ICON_SIZE = 20;
 	private static final Color DROPDOWN_BG = new Color(40, 40, 40);
 	private static final Color DROPDOWN_HOVER = new Color(50, 50, 50);
@@ -253,5 +255,10 @@ public class SkillSelector extends JPanel
 		{
 			skillComboBox.setSelectedItem(skill);
 		}
+	}
+	
+	public Skill getSelectedSkill()
+	{
+		return selectedSkill;
 	}
 }

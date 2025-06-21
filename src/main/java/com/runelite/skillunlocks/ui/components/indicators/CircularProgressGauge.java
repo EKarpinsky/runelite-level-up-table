@@ -8,9 +8,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Arc2D;
 import java.awt.geom.Ellipse2D;
+import java.io.Serializable;
 
-public class CircularProgressGauge extends JPanel
+public class CircularProgressGauge extends JPanel implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	private static final int GAUGE_SIZE = 120;
 	private static final int STROKE_WIDTH = 8;
 	private static final Color TRACK_COLOR = new Color(45, 45, 50);

@@ -15,14 +15,18 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Arc2D;
 import java.awt.geom.RoundRectangle2D;
+import java.io.Serializable;
 
 @Slf4j
-public class UnlockCard extends JPanel
+public class UnlockCard extends JPanel implements Serializable
 {
+	private static final long serialVersionUID = 1L;
 	private static final int CARD_HEIGHT = 75;
 	private static final int LEVEL_SIZE = 50;
 	private static final int CORNER_RADIUS = 12;
 	private static final int SHADOW_SIZE = 3;
+	private static final int CONTENT_X = 70; // LEVEL_SIZE + 20
+	private static final int EXPANDED_CONTENT_X = 10;
 	
 	// Status colors
 	private static final Color UNLOCKED_COLOR = new Color(46, 213, 115);
@@ -158,7 +162,7 @@ public class UnlockCard extends JPanel
 					else if (xpButtonBounds != null && xpButtonBounds.contains(e.getPoint()))
 					{
 						// Could open XP calculator or show detailed XP info
-						log.info("XP needed: " + calculateXPNeeded());
+						log.info("XP needed: {}", calculateXPNeeded());
 					}
 				}
 			}
@@ -264,12 +268,12 @@ public class UnlockCard extends JPanel
 		drawLevelIndicator(g2d, cardY + 10);
 		
 		// Draw content
-		drawContent(g2d, LEVEL_SIZE + 20, cardY, getWidth() - LEVEL_SIZE - 30, CARD_HEIGHT);
+		drawContent(g2d, CONTENT_X, cardY, getWidth() - LEVEL_SIZE - 30, CARD_HEIGHT);
 		
 		// Draw expanded details if expanded
 		if (expandProgress > 0)
 		{
-			drawExpandedContent(g2d, 10, cardY + CARD_HEIGHT, getWidth() - 20, expandProgress);
+			drawExpandedContent(g2d, EXPANDED_CONTENT_X, cardY + CARD_HEIGHT, getWidth() - 20, expandProgress);
 		}
 		
 		g2d.dispose();
@@ -353,13 +357,24 @@ public class UnlockCard extends JPanel
 	{
 		// Get type color
 		Color typeColor = getTypeColor(type);
-		Color bgColor = new Color(typeColor.getRed(), typeColor.getGreen(), typeColor.getBlue(), 30);
+		String typeText = formatType(type);
+		drawBadge(g2d, x, y, typeText, typeColor);
+	}
+	
+	private void drawMembersBadge(Graphics2D g2d, int x, int y)
+	{
+		Color memberColor = new Color(255, 152, 31);
+		drawBadge(g2d, x, y, "Members", memberColor);
+	}
+	
+	private void drawBadge(Graphics2D g2d, int x, int y, String text, Color color)
+	{
+		Color bgColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), 30);
 		
 		// Calculate badge size
 		g2d.setFont(FontManager.getRunescapeSmallFont());
-		String typeText = formatType(type);
 		FontMetrics fm = g2d.getFontMetrics();
-		int badgeWidth = fm.stringWidth(typeText) + 16;
+		int badgeWidth = fm.stringWidth(text) + 16;
 		int badgeHeight = 18;
 		
 		// Draw badge background
@@ -367,34 +382,12 @@ public class UnlockCard extends JPanel
 		g2d.fill(new RoundRectangle2D.Float(x, y, badgeWidth, badgeHeight, 9, 9));
 		
 		// Draw badge border
-		g2d.setColor(typeColor);
+		g2d.setColor(color);
 		g2d.setStroke(new BasicStroke(1));
 		g2d.draw(new RoundRectangle2D.Float(x + 0.5f, y + 0.5f, badgeWidth - 1, badgeHeight - 1, 9, 9));
 		
 		// Draw text
-		g2d.setColor(typeColor);
-		g2d.drawString(typeText, x + 8, y + 13);
-	}
-	
-	private void drawMembersBadge(Graphics2D g2d, int x, int y)
-	{
-		Color memberColor = new Color(255, 152, 31);
-		Color bgColor = new Color(255, 152, 31, 30);
-		
-		g2d.setFont(FontManager.getRunescapeSmallFont());
-		String text = "Members";
-		FontMetrics fm = g2d.getFontMetrics();
-		int badgeWidth = fm.stringWidth(text) + 16;
-		int badgeHeight = 18;
-		
-		// Draw badge
-		g2d.setColor(bgColor);
-		g2d.fill(new RoundRectangle2D.Float(x, y, badgeWidth, badgeHeight, 9, 9));
-		
-		g2d.setColor(memberColor);
-		g2d.setStroke(new BasicStroke(1));
-		g2d.draw(new RoundRectangle2D.Float(x + 0.5f, y + 0.5f, badgeWidth - 1, badgeHeight - 1, 9, 9));
-		
+		g2d.setColor(color);
 		g2d.drawString(text, x + 8, y + 13);
 	}
 	
@@ -453,7 +446,7 @@ public class UnlockCard extends JPanel
 		}
 		
 		// Additional useful information
-		drawAdditionalInfo(g2d, x + 10, contentY, width - 20);
+		drawAdditionalInfo(g2d, x + 10, contentY);
 		
 		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
 	}
@@ -645,7 +638,7 @@ public class UnlockCard extends JPanel
 		try
 		{
 			LinkBrowser.browse(wikiUrl);
-			log.info("Opened wiki page: " + wikiUrl);
+			log.info("Opened wiki page: {}", wikiUrl);
 		}
 		catch (Exception e)
 		{
@@ -768,7 +761,7 @@ public class UnlockCard extends JPanel
 		g2d.drawString(text, textX, textY);
 	}
 	
-	private void drawAdditionalInfo(Graphics2D g2d, int x, int y, int width)
+	private void drawAdditionalInfo(Graphics2D g2d, int x, int y)
 	{
 		g2d.setColor(ColorScheme.LIGHT_GRAY_COLOR);
 		g2d.setFont(FontManager.getRunescapeSmallFont());
@@ -882,7 +875,7 @@ public class UnlockCard extends JPanel
 	{
 		Toolkit.getDefaultToolkit().getSystemClipboard()
 			.setContents(new java.awt.datatransfer.StringSelection(unlock.getName()), null);
-		log.info("Copied to clipboard: " + unlock.getName());
+		log.info("Copied to clipboard: {}", unlock.getName());
 	}
 	
 	/**

@@ -5,13 +5,11 @@ import com.runelite.skillunlocks.domain.model.SkillData;
 import com.runelite.skillunlocks.domain.model.SkillUnlock;
 import com.runelite.skillunlocks.domain.repository.UnlockRepository;
 import com.runelite.skillunlocks.constants.UIConstants;
-import com.runelite.skillunlocks.util.UnlockFilterUtil;
-import com.runelite.skillunlocks.ui.components.controls.SkillSelector;
-import com.runelite.skillunlocks.ui.components.indicators.CircularProgressGauge;
 import com.runelite.skillunlocks.ui.components.controls.PillFilterBar;
-import com.runelite.skillunlocks.ui.components.controls.SearchField;
-import com.runelite.skillunlocks.ui.components.cards.MilestoneCard;
-import com.runelite.skillunlocks.ui.components.cards.UnlockCard;
+import com.runelite.skillunlocks.ui.panels.SkillSelectorPanel;
+import com.runelite.skillunlocks.ui.panels.ProgressPanel;
+import com.runelite.skillunlocks.ui.panels.SearchBarPanel;
+import com.runelite.skillunlocks.ui.panels.UnlockListPanel;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
@@ -30,30 +28,29 @@ import java.awt.event.ActionEvent;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.io.Serializable;
 
 @Slf4j
-public class SkillUnlocksPanel extends PluginPanel
+public class SkillUnlocksPanel extends PluginPanel implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	private final Client client;
 	private final SkillUnlocksConfig config;
 	private final UnlockRepository repository;
 	private final SkillIconManager skillIconManager;
 	
-	// UI Components
-	private SkillSelector skillSelector;
-	private CircularProgressGauge progressGauge;
+	// UI Panels
+	private SkillSelectorPanel skillSelectorPanel;
+	private ProgressPanel progressPanel;
+	private SearchBarPanel searchBarPanel;
+	private UnlockListPanel unlockListPanel;
 	private PillFilterBar filterBar;
-	private SearchField searchField;
 	private JButton refreshButton;
-	private JButton viewModeButton;
-    private JPanel contentPanel;
-	private JLabel statusLabel;
 	
 	// State
 	private Skill selectedSkill = null;
 	private final Map<Skill, Integer> playerLevels = new HashMap<>();
-	private final List<MilestoneCard> milestoneCards = new ArrayList<>();
-	private boolean compactMode = false;
 	private javax.swing.Timer refreshButtonResetTimer;
 	
 	public SkillUnlocksPanel(Client client, SkillUnlocksConfig config, UnlockRepository repository,
@@ -84,27 +81,21 @@ public class SkillUnlocksPanel extends PluginPanel
 		headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
 		headerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 		
-		// Skill selector
-		skillSelector = new SkillSelector(skillIconManager, this::onSkillSelected, playerLevels);
-		headerPanel.add(skillSelector);
+		// Skill selector panel
+		skillSelectorPanel = new SkillSelectorPanel(skillIconManager, this::onSkillSelected, playerLevels);
+		headerPanel.add(skillSelectorPanel);
 		
-		// Progress gauge
-		progressGauge = new CircularProgressGauge();
-		progressGauge.setAlignmentX(Component.CENTER_ALIGNMENT);
+		// Progress panel
+		progressPanel = new ProgressPanel();
 		headerPanel.add(Box.createVerticalStrut(10));
-		headerPanel.add(progressGauge);
+		headerPanel.add(progressPanel);
 		
 		mainContainer.add(headerPanel);
 		mainContainer.add(createSeparator());
 		
-		// Search and controls panel
-		JPanel controlsPanel = new JPanel(new BorderLayout(5, 0));
-		controlsPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		controlsPanel.setBorder(new EmptyBorder(10, 10, 5, 10));
-		
-		// Enhanced search field
-		searchField = new SearchField();
-		searchField.addSearchListener(new DocumentListener()
+		// Search bar panel
+		searchBarPanel = new SearchBarPanel();
+		searchBarPanel.addSearchListener(new DocumentListener()
 		{
 			@Override
 			public void insertUpdate(DocumentEvent e) { filterContent(); }
@@ -113,14 +104,8 @@ public class SkillUnlocksPanel extends PluginPanel
 			@Override
 			public void changedUpdate(DocumentEvent e) { filterContent(); }
 		});
-		controlsPanel.add(searchField, BorderLayout.CENTER);
-		
-		// View mode toggle
-		viewModeButton = createModernButton("⊞", "Toggle compact mode");
-		viewModeButton.addActionListener(event -> toggleViewMode());
-		controlsPanel.add(viewModeButton, BorderLayout.EAST);
-		
-		mainContainer.add(controlsPanel);
+		searchBarPanel.addViewModeListener(event -> toggleViewMode());
+		mainContainer.add(searchBarPanel);
 		
 		// Filter bar
 		filterBar = new PillFilterBar();
@@ -139,33 +124,9 @@ public class SkillUnlocksPanel extends PluginPanel
 		
 		add(mainContainer, BorderLayout.NORTH);
 		
-		// Content area with modern scroll
-		contentPanel = new JPanel();
-		contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-		contentPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
-
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
-		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
-		scrollPane.setBackground(ColorScheme.DARK_GRAY_COLOR);
-		scrollPane.getViewport().setBackground(ColorScheme.DARK_GRAY_COLOR);
-		scrollPane.setBorder(null);
-		
-		// Modern scrollbar
-		JScrollBar vBar = scrollPane.getVerticalScrollBar();
-		vBar.setPreferredSize(new Dimension(UIConstants.SCROLLBAR_WIDTH, 0));
-		vBar.setUI(new ModernScrollBarUI());
-		
-		// Status label
-		statusLabel = new JLabel("Select a skill to view unlocks", SwingConstants.CENTER);
-		statusLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-		statusLabel.setFont(FontManager.getRunescapeFont());
-		contentPanel.add(Box.createVerticalGlue());
-		contentPanel.add(statusLabel);
-		contentPanel.add(Box.createVerticalGlue());
-		
-		add(scrollPane, BorderLayout.CENTER);
+		// Unlock list panel
+		unlockListPanel = new UnlockListPanel();
+		add(unlockListPanel, BorderLayout.CENTER);
 	}
 	
 	private JPanel createGlassPanel()
@@ -246,7 +207,7 @@ public class SkillUnlocksPanel extends PluginPanel
 		updatePlayerStats();
 		
 		// Select Attack skill by default after initialization
-		SwingUtilities.invokeLater(() -> skillSelector.selectSkill(Skill.ATTACK));
+		SwingUtilities.invokeLater(() -> skillSelectorPanel.selectSkill(Skill.ATTACK));
 	}
 	
 	private void onSkillSelected(Skill skill)
@@ -257,21 +218,18 @@ public class SkillUnlocksPanel extends PluginPanel
 	
 	private void updateContentForSkill(Skill skill)
 	{
-		contentPanel.removeAll();
-		milestoneCards.clear();
-		
 		if (skill == null)
 		{
-			showStatus("Select a skill to view unlocks");
-			progressGauge.reset();
+			unlockListPanel.showStatus("Select a skill to view unlocks");
+			progressPanel.reset();
 			return;
 		}
 		
 		SkillData skillData = repository.getSkillData(skill);
 		if (skillData == null || skillData.getAllUnlocks().isEmpty())
 		{
-			showStatus("Loading data for " + skill.getName() + "...");
-			progressGauge.reset();
+			unlockListPanel.showStatus("Loading data for " + skill.getName() + "...");
+			progressPanel.reset();
 			
 			// Trigger async load
 			SwingUtilities.invokeLater(() -> {
@@ -285,40 +243,14 @@ public class SkillUnlocksPanel extends PluginPanel
 		Map<String, List<SkillUnlock>> groupedUnlocks = groupUnlocksByLevelRange(skillData.getAllUnlocks());
 		int playerLevel = playerLevels.getOrDefault(skill, 1);
 		
-		// Add spacing at top
-		contentPanel.add(Box.createVerticalStrut(10));
-		
-		// Create milestone cards
-		for (Map.Entry<String, List<SkillUnlock>> entry : groupedUnlocks.entrySet())
-		{
-			String range = entry.getKey();
-			List<SkillUnlock> unlocks = entry.getValue();
-			
-			// Determine if this group should start expanded
-			boolean shouldExpand = UnlockFilterUtil.shouldExpandLevelGroup(range, playerLevel);
-			
-			MilestoneCard card = new MilestoneCard(range, unlocks.size(), shouldExpand);
-			
-			// Add unlock cards to the milestone
-			for (SkillUnlock unlock : unlocks)
-			{
-				UnlockCard unlockCard = new UnlockCard(unlock, playerLevel, skill);
-				card.addContent(unlockCard);
-			}
-			
-			milestoneCards.add(card);
-			contentPanel.add(card);
-			contentPanel.add(Box.createVerticalStrut(UIConstants.COMPONENT_GAP));
-		}
+		// Update unlock list
+		unlockListPanel.updateContent(groupedUnlocks, playerLevel, skill);
 		
 		// Update progress gauge
 		updateProgress(skill, skillData);
 		
 		// Apply current filter
 		filterContent();
-		
-		contentPanel.revalidate();
-		contentPanel.repaint();
 	}
 	
 	private Map<String, List<SkillUnlock>> groupUnlocksByLevelRange(List<SkillUnlock> unlocks)
@@ -384,67 +316,28 @@ public class SkillUnlocksPanel extends PluginPanel
 			}
 		}
 		
-		progressGauge.updateProgress(skill, playerLevel, unlockedCount, allUnlocks.size(), nextUnlockLevel);
+		progressPanel.updateProgress(skill, playerLevel, unlockedCount, allUnlocks.size(), nextUnlockLevel);
 	}
 	
 	private void filterContent()
 	{
-		if (milestoneCards.isEmpty())
-		{
-			return;
-		}
-		
-		String searchText = searchField.getSearchText().toLowerCase().trim();
+		String searchText = searchBarPanel.getSearchText().toLowerCase().trim();
 		PillFilterBar.FilterType filterType = filterBar.getSelectedFilter();
 		int playerLevel = playerLevels.getOrDefault(selectedSkill, 1);
 		
-		int totalCount = 0;
-		int shownCount = 0;
-		
-		for (MilestoneCard card : milestoneCards)
-		{
-			boolean hasVisibleContent = false;
-			
-			for (Component component : card.getContentPanel().getComponents())
-			{
-				if (component instanceof UnlockCard)
-				{
-					UnlockCard unlockCard = (UnlockCard) component;
-					boolean visible = UnlockFilterUtil.shouldShowUnlock(unlockCard.getUnlock(), searchText, filterType, playerLevel);
-					unlockCard.setVisible(visible);
-					
-					totalCount++;
-					if (visible)
-					{
-						hasVisibleContent = true;
-						shownCount++;
-					}
-				}
-			}
-			
-			// Hide entire card if no visible content
-			card.setVisible(hasVisibleContent);
-			
-			// Auto-expand cards with search results
-			if (hasVisibleContent && !searchText.isEmpty())
-			{
-				card.setExpanded(true);
-			}
-		}
+		// Filter content in unlock list
+		unlockListPanel.filterContent(searchText, filterType, playerLevel);
 		
 		// Update result count
-		filterBar.updateResultCount(shownCount, totalCount);
-		
-		contentPanel.revalidate();
-		contentPanel.repaint();
+		int[] counts = unlockListPanel.countVisibleUnlocks();
+		filterBar.updateResultCount(counts[0], counts[1]);
 	}
 	
 	
 	private void toggleViewMode()
 	{
-		compactMode = !compactMode;
-		viewModeButton.setText(compactMode ? "⊡" : "⊞");
 		// TODO: Implement compact mode view
+		// The SearchBarPanel handles the button state internally
 	}
 	
 	private void onRefreshClicked(ActionEvent event)
@@ -455,7 +348,7 @@ public class SkillUnlocksPanel extends PluginPanel
 		refreshButton.setBackground(UIConstants.DISABLED_TEXT_COLOR);
 		
 		// Show loading in content area
-		showStatus("Refreshing data from wiki...");
+		unlockListPanel.showStatus("Refreshing data from wiki...");
 		
 		SwingUtilities.invokeLater(() -> {
 			boolean success = false;
@@ -495,16 +388,6 @@ public class SkillUnlocksPanel extends PluginPanel
 		});
 	}
 	
-	private void showStatus(String message)
-	{
-		contentPanel.removeAll();
-		statusLabel.setText(message);
-		contentPanel.add(Box.createVerticalGlue());
-		contentPanel.add(statusLabel);
-		contentPanel.add(Box.createVerticalGlue());
-		contentPanel.revalidate();
-		contentPanel.repaint();
-	}
 	
 	@SuppressWarnings("deprecation")
 	public void updatePlayerStats()
@@ -522,7 +405,7 @@ public class SkillUnlocksPanel extends PluginPanel
 			}
 		}
 		
-		skillSelector.updatePlayerLevels(playerLevels);
+		skillSelectorPanel.updatePlayerLevels(playerLevels);
 		
 		if (selectedSkill != null)
 		{
@@ -530,59 +413,6 @@ public class SkillUnlocksPanel extends PluginPanel
 		}
 	}
 	
-	// Modern scrollbar UI
-	private static class ModernScrollBarUI extends javax.swing.plaf.basic.BasicScrollBarUI
-	{
-		@Override
-		protected void configureScrollBarColors()
-		{
-			thumbColor = UIConstants.withAlpha(UIConstants.MUTED_TEXT_COLOR, 85);
-			trackColor = ColorScheme.DARK_GRAY_COLOR;
-		}
-		
-		@Override
-		protected JButton createDecreaseButton(int orientation)
-		{
-			return createInvisibleButton();
-		}
-		
-		@Override
-		protected JButton createIncreaseButton(int orientation)
-		{
-			return createInvisibleButton();
-		}
-		
-		private JButton createInvisibleButton()
-		{
-			JButton button = new JButton();
-			button.setPreferredSize(new Dimension(0, 0));
-			return button;
-		}
-		
-		@Override
-		protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds)
-		{
-			if (thumbBounds.isEmpty() || !scrollbar.isEnabled())
-			{
-				return;
-			}
-			
-			Graphics2D g2d = (Graphics2D) g.create();
-			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			
-			g2d.setColor(thumbColor);
-			g2d.fillRoundRect(thumbBounds.x + 2, thumbBounds.y,
-				thumbBounds.width - 4, thumbBounds.height, 4, 4);
-			
-			g2d.dispose();
-		}
-		
-		@Override
-		protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds)
-		{
-			// Don't paint track
-		}
-	}
 	
 	/**
 	 * Cleanup method to stop all timers and release resources
@@ -596,17 +426,15 @@ public class SkillUnlocksPanel extends PluginPanel
 			refreshButtonResetTimer = null;
 		}
 		
-		// Clean up milestone cards and their timers
-		for (MilestoneCard card : milestoneCards)
+		// Clean up panels
+		if (unlockListPanel != null)
 		{
-			card.cleanup();
+			unlockListPanel.cleanup();
 		}
-		milestoneCards.clear();
 		
-		// Clean up other components that might have timers
-		if (progressGauge != null)
+		if (progressPanel != null)
 		{
-			progressGauge.cleanup();
+			progressPanel.cleanup();
 		}
 		
 		if (filterBar != null)

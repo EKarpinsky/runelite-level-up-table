@@ -1,10 +1,11 @@
 package com.runelite.skillunlocks;
 
-import com.google.gson.Gson;
 import com.google.inject.Provides;
+import com.runelite.skillunlocks.api.WikiHttpClient;
 import com.runelite.skillunlocks.cache.CacheManager;
 import com.runelite.skillunlocks.api.WikiApiClient;
 import com.runelite.skillunlocks.domain.repository.UnlockRepository;
+import com.runelite.skillunlocks.service.parser.WikiTextParser;
 import com.runelite.skillunlocks.ui.SkillUnlocksPanel;
 import com.runelite.skillunlocks.util.IconGenerator;
 import javax.inject.Inject;
@@ -51,11 +52,8 @@ public class SkillUnlocksPlugin extends Plugin
 	private OkHttpClient httpClient;
 	
 	@Inject
-	private Gson gson;
-	
-	@Inject
 	private SkillIconManager skillIconManager;
-
+	
 	private SkillUnlocksPanel panel;
 	private NavigationButton navButton;
 	private UnlockRepository repository;
@@ -66,7 +64,9 @@ public class SkillUnlocksPlugin extends Plugin
 		log.info("Skill Unlocks plugin started!");
 		
 		// Initialize services
-		WikiApiClient wikiApiClient = new WikiApiClient(httpClient);
+		WikiHttpClient wikiHttpClient = new WikiHttpClient(httpClient);
+		WikiTextParser wikiTextParser = new WikiTextParser();
+		WikiApiClient wikiApiClient = new WikiApiClient(wikiHttpClient, wikiTextParser);
 		CacheManager cacheManager = new CacheManager();
 		repository = new UnlockRepository(wikiApiClient, cacheManager);
 		

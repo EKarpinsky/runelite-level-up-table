@@ -11,9 +11,12 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Path2D;
 import java.awt.geom.RoundRectangle2D;
+import java.io.Serializable;
 
-public class MilestoneCard extends JPanel
+public class MilestoneCard extends JPanel implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	private static final int HEADER_HEIGHT = 45;
 	private static final int CORNER_RADIUS = 10;
 	private static final Color MILESTONE_99_COLOR = new Color(255, 215, 0); // Gold
@@ -21,6 +24,14 @@ public class MilestoneCard extends JPanel
 	private static final Color MILESTONE_50_COLOR = new Color(0, 123, 255); // Blue
 	private static final Color MILESTONE_25_COLOR = new Color(40, 167, 69); // Green
 	private static final Color DEFAULT_COLOR = new Color(108, 117, 125); // Gray
+	
+	// Drawing constants
+	private static final int LEVEL_ICON_X = 40;
+	private static final int LEVEL_ICON_CENTER_OFFSET = 8;
+	private static final int STAR_RADIUS = 8;
+	private static final int DIAMOND_RADIUS = 7;
+	private static final int PROGRESS_BAR_X = 180;
+	private static final int PROGRESS_BAR_WIDTH = 80;
 	
 	private final String levelRange;
 	private final int itemCount;
@@ -164,14 +175,14 @@ public class MilestoneCard extends JPanel
 		g2d.setFont(FontManager.getRunescapeBoldFont());
 		
 		// Draw level icon
-		drawLevelIcon(g2d, 40, y - 8);
+		drawLevelIcon(g2d, y - 8);
 		
 		g2d.drawString(levelRange, 65, y);
 		
 		// Progress bar
 		if (startLevel != endLevel)
 		{
-			drawProgressBar(g2d, 180, y - 8, 80);
+			drawProgressBar(g2d, y - 8);
 		}
 		
 		// Item count
@@ -189,7 +200,7 @@ public class MilestoneCard extends JPanel
 		}
 	}
 	
-	private void drawLevelIcon(Graphics2D g2d, int x, int y)
+	private void drawLevelIcon(Graphics2D g2d, int y)
 	{
 		// Draw a small icon representing the level milestone
 		g2d.setColor(milestoneColor);
@@ -197,32 +208,33 @@ public class MilestoneCard extends JPanel
 		if (endLevel >= 99)
 		{
 			// Star for max level
-			drawStar(g2d, x + 8, y + 8, 8);
+			drawStar(g2d, y + LEVEL_ICON_CENTER_OFFSET);
 		}
 		else if (endLevel >= 75)
 		{
 			// Diamond for high level
-			drawDiamond(g2d, x + 8, y + 8, 7);
+			drawDiamond(g2d, y + LEVEL_ICON_CENTER_OFFSET);
 		}
 		else if (endLevel >= 50)
 		{
 			// Square for mid level
-			g2d.fillRect(x + 3, y + 3, 10, 10);
+			g2d.fillRect(LEVEL_ICON_X + 3, y + 3, 10, 10);
 		}
 		else
 		{
 			// Circle for low level
-			g2d.fillOval(x + 2, y + 2, 12, 12);
+			g2d.fillOval(LEVEL_ICON_X + 2, y + 2, 12, 12);
 		}
 	}
 	
-	private void drawStar(Graphics2D g2d, int cx, int cy, int radius)
+	private void drawStar(Graphics2D g2d, int cy)
 	{
+		int cx = LEVEL_ICON_X + LEVEL_ICON_CENTER_OFFSET;
 		Path2D star = new Path2D.Float();
 		for (int i = 0; i < 10; i++)
 		{
 			double angle = Math.PI * i / 5;
-			double r = (i % 2 == 0) ? radius : radius * 0.5;
+			double r = (i % 2 == 0) ? STAR_RADIUS : STAR_RADIUS * 0.5;
 			double x = cx + r * Math.cos(angle - Math.PI / 2);
 			double y = cy + r * Math.sin(angle - Math.PI / 2);
 			
@@ -239,37 +251,35 @@ public class MilestoneCard extends JPanel
 		g2d.fill(star);
 	}
 	
-	private void drawDiamond(Graphics2D g2d, int cx, int cy, int radius)
+	private void drawDiamond(Graphics2D g2d, int cy)
 	{
+		int cx = LEVEL_ICON_X + LEVEL_ICON_CENTER_OFFSET;
 		Path2D diamond = new Path2D.Float();
-		diamond.moveTo(cx, cy - radius);
-		diamond.lineTo(cx + radius, cy);
-		diamond.lineTo(cx, cy + radius);
-		diamond.lineTo(cx - radius, cy);
+		diamond.moveTo(cx, cy - DIAMOND_RADIUS);
+		diamond.lineTo(cx + DIAMOND_RADIUS, cy);
+		diamond.lineTo(cx, cy + DIAMOND_RADIUS);
+		diamond.lineTo(cx - DIAMOND_RADIUS, cy);
 		diamond.closePath();
 		g2d.fill(diamond);
 	}
 	
-	private void drawProgressBar(Graphics2D g2d, int x, int y, int width)
+	private void drawProgressBar(Graphics2D g2d, int y)
 	{
 		// Background
 		g2d.setColor(new Color(30, 30, 35));
-		g2d.fillRoundRect(x, y, width, 16, 8, 8);
+		g2d.fillRoundRect(PROGRESS_BAR_X, y, PROGRESS_BAR_WIDTH, 16, 8, 8);
 		
 		// Calculate progress (example - would be based on actual player progress)
 		float progress = 0.6f; // Example: 60% through this level range
 		
-		// Progress fill
-		if (progress > 0)
-		{
-			g2d.setColor(milestoneColor);
-			g2d.fillRoundRect(x, y, (int)(width * progress), 16, 8, 8);
-		}
+		// Progress fill (always draw since progress is hardcoded > 0)
+		g2d.setColor(milestoneColor);
+		g2d.fillRoundRect(PROGRESS_BAR_X, y, (int)(PROGRESS_BAR_WIDTH * progress), 16, 8, 8);
 		
 		// Border
 		g2d.setColor(new Color(60, 60, 65));
 		g2d.setStroke(new BasicStroke(1));
-		g2d.drawRoundRect(x, y, width, 16, 8, 8);
+		g2d.drawRoundRect(PROGRESS_BAR_X, y, PROGRESS_BAR_WIDTH, 16, 8, 8);
 	}
 	
 	private int[] parseLevelRange(String range)

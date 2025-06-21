@@ -1,23 +1,14 @@
 package com.runelite.skillunlocks.api;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.runelite.skillunlocks.domain.model.SkillData;
 import com.runelite.skillunlocks.service.parser.WikiTextParser;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Skill;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Client for fetching skill data from the OSRS Wiki API
@@ -25,10 +16,8 @@ import java.util.concurrent.TimeUnit;
  * and delegating parsing to the WikiTextParser.
  */
 @Slf4j
-@Singleton
 public class WikiApiClient
 {
-	private static final String WIKI_API_URL = "https://oldschool.runescape.wiki/api.php";
 	private static final Map<Skill, String> SKILL_PAGE_NAMES = new HashMap<>();
 	
 	static {
@@ -58,21 +47,13 @@ public class WikiApiClient
 		SKILL_PAGE_NAMES.put(Skill.FARMING, "Farming");
 	}
 	
-	private final OkHttpClient httpClient;
+	private final WikiHttpClient wikiHttpClient;
 	private final WikiTextParser parser;
 	
-	// Rate limiting - allow 1 request per second
-	private long lastRequestTime = 0;
-	private static final long MIN_REQUEST_INTERVAL_MS = 1000;
-	
-	@Inject
-	public WikiApiClient(OkHttpClient httpClient)
+	public WikiApiClient(WikiHttpClient wikiHttpClient, WikiTextParser parser)
 	{
-		this.httpClient = httpClient.newBuilder()
-			.connectTimeout(30, TimeUnit.SECONDS)
-			.readTimeout(30, TimeUnit.SECONDS)
-			.build();
-		this.parser = new WikiTextParser();
+		this.wikiHttpClient = wikiHttpClient;
+		this.parser = parser;
 	}
 	
 	public SkillData fetchSkillData(Skill skill) throws IOException
@@ -94,50 +75,19 @@ public class WikiApiClient
 		return parser.parseSkillPage(skill, wikiText);
 	}
 	
-	private synchronized String fetchWikiText(String pageName) throws IOException
+	private String fetchWikiText(String pageName) throws IOException
 	{
-		// Rate limiting
-		long currentTime = System.currentTimeMillis();
-		long timeSinceLastRequest = currentTime - lastRequestTime;
-		if (timeSinceLastRequest < MIN_REQUEST_INTERVAL_MS)
-		{
-			try
-			{
-				Thread.sleep(MIN_REQUEST_INTERVAL_MS - timeSinceLastRequest);
-			}
-			catch (InterruptedException e)
-			{
-				Thread.currentThread().interrupt();
-				throw new IOException("Rate limiting interrupted", e);
-			}
-		}
-		lastRequestTime = System.currentTimeMillis();
-		
 		// Always go directly to the Level_up_table subpage
 		String levelUpPageName = pageName + "/Level_up_table";
-
-		String encodedPageName = URLEncoder.encode(levelUpPageName, StandardCharsets.UTF_8);
-		String url = String.format("%s?action=query&prop=revisions&titles=%s&rvslots=*&rvprop=content&format=json",
-			WIKI_API_URL, encodedPageName);
 		
-		Request request = new Request.Builder()
-			.url(url)
-			.header("User-Agent", "RuneLite Skill Unlocks Plugin")
-			.build();
-		
-		try (Response response = httpClient.newCall(request).execute())
+		String jsonResponse = wikiHttpClient.fetchWikiPage(levelUpPageName);
+		if (jsonResponse == null)
 		{
-			if (!response.isSuccessful())
-			{
-				log.error("Failed to fetch wiki page: {} - {}", levelUpPageName, response.code());
-				return null;
-			}
-
-            assert response.body() != null;
-            String body = response.body().string();
-
-            return extractWikiText(body);
+			log.warn("Failed to fetch wiki page: {}", levelUpPageName);
+			return null;
 		}
+		
+		return extractWikiText(jsonResponse);
 	}
 	
 	private String extractWikiText(String jsonResponse)

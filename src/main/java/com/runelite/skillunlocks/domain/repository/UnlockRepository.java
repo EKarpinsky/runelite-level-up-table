@@ -6,8 +6,6 @@ import com.runelite.skillunlocks.domain.model.SkillData;
 import com.runelite.skillunlocks.domain.model.SkillUnlock;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Skill;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -23,7 +21,6 @@ import java.util.concurrent.Executors;
  * blocking the UI while fetching data.
  */
 @Slf4j
-@Singleton
 public class UnlockRepository
 {
 	private final WikiApiClient wikiApiClient;
@@ -32,7 +29,6 @@ public class UnlockRepository
 	private final ExecutorService executorService = Executors.newFixedThreadPool(4);
 	private boolean initialized = false;
 	
-	@Inject
 	public UnlockRepository(WikiApiClient wikiApiClient, CacheManager cacheManager)
 	{
 		this.wikiApiClient = wikiApiClient;
@@ -130,5 +126,6 @@ public class UnlockRepository
 	public void shutdown()
 	{
 		executorService.shutdown();
+		cacheManager.shutdown();
 	}
 }

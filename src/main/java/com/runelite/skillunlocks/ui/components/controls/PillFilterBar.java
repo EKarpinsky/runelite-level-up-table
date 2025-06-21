@@ -13,11 +13,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PillFilterBar extends JPanel
+public class PillFilterBar extends JPanel implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+	
 	@Getter
     public enum FilterType
 	{
