@@ -25,5 +25,5 @@ timeout --signal=TERM --kill-after=5s 180s \
   com.runelite.skillunlocks.ClientCapture "$capture_scratch/images"
 
 mkdir -p docs
-cp "$capture_scratch/images/panel.png" "$capture_scratch/images/client.png" docs/
-ls -la docs/panel.png docs/client.png
+cp "$capture_scratch/images/panel.png" docs/
+ls -la docs/panel.png

@@ -51,27 +51,9 @@ GitHub Actions runs `./gradlew build --no-daemon` on pushes and pull requests wi
 
 ![Skill Unlocks sidebar showing Attack unlocks filtered by rune](docs/panel.png)
 
-The actual Skill Unlocks panel inside RuneLite, captured while logged out, using
-live OSRS Wiki data and the search term `rune`. Level 1 is the panel's
-logged-out default, not a player's stats. [Full client screenshot](docs/client.png).
+Skill Unlocks panel with live OSRS Wiki data, searching Attack unlocks for `rune`.
 
-Regenerate both screenshots on Linux with a JDK 11 or 17, its desktop JRE, Xvfb,
-and `xauth` installed:
-
-```bash
-scripts/capture/panel.sh
-```
-
-The script builds the development client, starts it under Xvfb with an isolated
-temporary home, opens Skill Unlocks, and applies the search. It checks that the
-search returns matching unlocks and that both PNGs stay under 1 MB. No account,
-login, or fixture data is used. It leaves the game's terms dialog untouched.
-Network access is required; wiki content and RuneLite's `latest.release` may
-change the results. The sidebar is captured at its native desktop width, with
-a 1440px full-client image for context.
-
-The temporary home is deleted automatically. After checking the images, remove
-local build output with `rm -rf build .gradle`.
+Regenerate with `scripts/capture/panel.sh` (Linux, Xvfb).
 
 ## License and credits
 
