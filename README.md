@@ -53,8 +53,6 @@ GitHub Actions runs `./gradlew build --no-daemon` on pushes and pull requests wi
 
 Skill Unlocks panel with live OSRS Wiki data, searching Attack unlocks for `rune`.
 
-Regenerate with `scripts/capture/panel.sh` (Linux, Xvfb).
-
 ## License and credits
 
 [BSD 2-Clause](LICENSE). Built on the [RuneLite](https://runelite.net) plugin framework with data from the [OSRS Wiki](https://oldschool.runescape.wiki).
