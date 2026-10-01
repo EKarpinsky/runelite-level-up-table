@@ -13,7 +13,7 @@ if (( free_kb < 3 * 1024 * 1024 )); then
   exit 1
 fi
 
-capture_scratch=$(mktemp -d "${PAPERCLIP_RUN_SCRATCH_DIR:-${TMPDIR:-/tmp}}/skill-unlocks.XXXXXX")
+capture_scratch=$(mktemp -d "${TMPDIR:-/tmp}/skill-unlocks.XXXXXX")
 trap 'rm -rf "$capture_scratch"' EXIT
 mkdir -p "$capture_scratch/home"
 

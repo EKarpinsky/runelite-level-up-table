@@ -68,7 +68,7 @@ search returns matching unlocks and that both PNGs stay under 1 MB. No account,
 login, or fixture data is used. It leaves the game's terms dialog untouched.
 Network access is required; wiki content and RuneLite's `latest.release` may
 change the results. The sidebar is captured at its native desktop width, with
-a 1440px full-client image for context. This is a desktop plugin, not a mobile UI.
+a 1440px full-client image for context.
 
 The temporary home is deleted automatically. After checking the images, remove
 local build output with `rm -rf build .gradle`.
