@@ -6,12 +6,6 @@ cd "$(dirname "$0")/../.."
 for tool in java xvfb-run timeout; do
   command -v "$tool" >/dev/null || { echo "Missing command: $tool" >&2; exit 1; }
 done
-df -h /
-free_kb=$(df -Pk . | awk 'NR == 2 {print $4}')
-if (( free_kb < 3 * 1024 * 1024 )); then
-  echo "At least 3 GB free disk is required." >&2
-  exit 1
-fi
 
 capture_scratch=$(mktemp -d "${TMPDIR:-/tmp}/skill-unlocks.XXXXXX")
 trap 'rm -rf "$capture_scratch"' EXIT
