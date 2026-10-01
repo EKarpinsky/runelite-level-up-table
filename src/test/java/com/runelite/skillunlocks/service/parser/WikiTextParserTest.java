@@ -166,6 +166,34 @@ public class WikiTextParserTest
 	}
 	
 	@Test
+	public void testNestedTemplatesWithMultipleRequirements()
+	{
+		String wikiText = "{{Level up table\n" +
+			"|members60 =\n" +
+			"* Wield {{plink|Dragon scimitar|pic=Dragon scimitar|txt=dragon scimitar}}s " +
+			"(with {{SCP|Quest}} [[Monkey Madness I]] completed and {{SCP|Attack|60}})\n" +
+			"|freeplay70 =\n" +
+			"* Wield [[Rune sword|rune sword]]\n" +
+			"}}";
+
+		SkillData skillData = parser.parseSkillPage(Skill.ATTACK, wikiText);
+
+		assertEquals(2, skillData.getAllUnlocks().size());
+		assertEquals(1, skillData.getUnlocksForLevel(60).size());
+		SkillUnlock memberUnlock = skillData.getUnlocksForLevel(60).get(0);
+		assertEquals("Wield dragon scimitar", memberUnlock.getName());
+		assertEquals("Quest Monkey Madness I completed and Attack 60", memberUnlock.getRequirements());
+		assertEquals("Members only", memberUnlock.getDescription());
+		assertEquals(SkillUnlock.UnlockType.ITEM, memberUnlock.getType());
+
+		assertEquals(1, skillData.getUnlocksForLevel(70).size());
+		SkillUnlock freeplayUnlock = skillData.getUnlocksForLevel(70).get(0);
+		assertEquals("Wield rune sword", freeplayUnlock.getName());
+		assertEquals("", freeplayUnlock.getRequirements());
+		assertEquals("", freeplayUnlock.getDescription());
+	}
+
+	@Test
 	public void testEmptyLevels()
 	{
 		String wikiText = "{{Level up table\n" +

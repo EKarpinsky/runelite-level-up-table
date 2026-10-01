@@ -1,129 +1,60 @@
-# Level up table Plugin
+# Skill Unlocks for RuneLite
 
-A comprehensive RuneLite plugin that displays all skill unlocks for every OSRS skill level (1-99). Features a modern UI with search, filtering, and direct wiki integration to help players plan their progression efficiently.
+A RuneLite sidebar plugin for browsing OSRS skill unlocks by level. It reads level-up tables from the OSRS Wiki, with search, filters, and progress based on your in-game stats.
 
-## Features
+## Build from source
 
-### 🎯 Core Features
-- **Complete Skill Unlocks**: Browse all unlocks for every skill (1-99) including items, spells, quests, and activities
-- **Modern UI Design**: Clean, intuitive interface with smooth animations and visual feedback
-- **Smart Categorization**: Unlocks are automatically categorized by type (Item, Spell, Prayer, Quest, Location, Activity, Ability)
-- **Live Player Stats**: Automatically updates based on your current skill levels
+Install Git and a JDK (Java 11 or 17), and check `java -version`. The Gradle wrapper is included, so a separate Gradle installation is not needed. The first build downloads Gradle and dependencies from Maven Central and the RuneLite repository.
 
-### 🔍 Search & Filter
-- **Global Search**: Find any unlock across all skills instantly
-- **Advanced Filtering**: Filter by unlock status, type, or proximity to your level
-- **Milestone Grouping**: Unlocks organized into level ranges (1-9, 10-24, 25-49, 50-74, 75-98, 99)
-
-### 🎨 Visual Features
-- **Color-Coded Progress**:
-  - 🟢 Green: Already unlocked
-  - 🟡 Yellow: Next unlock (coming soon)
-  - ⚪ Gray: Future unlocks
-- **Expandable Cards**: Click any unlock for detailed requirements and quick actions
-- **Progress Indicators**: Visual gauges showing overall skill completion
-- **Interactive Buttons**: Quick access to wiki pages and clipboard copying
-
-### ⚡ Performance
-- **Wiki Data Integration**: Fetches live data from OSRS Wiki's level up tables
-- **Smart Caching**: Reduces API calls and improves load times
-- **Concurrent Loading**: All skills load simultaneously for faster startup
-
-## Installation
-
-### From RuneLite Plugin Hub (Recommended)
-1. Open RuneLite
-2. Click on the Configuration icon (wrench)
-3. Select "Plugin Hub"
-4. Search for "Level up table"
-5. Click Install
-
-### Manual Installation (Development)
-1. Clone this repository
-2. Run `./gradlew build`
-3. Use the provided launcher scripts:
-   - **macOS**: Double-click `RuneLite-LevelUpTable.command` or the `.app` bundle
-   - **Windows/Linux**: Run `./gradlew runClient`
-
-## Usage
-
-1. Once installed, click on the Level up table icon in the RuneLite sidebar
-2. Select a skill by clicking on its icon in the grid at the top
-3. Browse through the unlocks for that skill
-4. Use the search bar to find specific unlocks across all levels
-5. Click "Refresh Wiki Data" to manually update the data from the wiki
-
-## Configuration
-
-The plugin provides several configuration options:
-
-- **Refresh on startup**: Force refresh skill data from wiki when the plugin starts
-- **Show only unlocked**: Filter to show only items you have already unlocked
-- **Highlight next unlock**: Highlight the next upcoming unlock for each skill
-- **Cache expiry**: How long to cache wiki data before refreshing (in hours)
-
-## Development
-
-### Requirements
-- Java 11 or higher
-- Gradle
-- RuneLite development environment
-
-### Building
 ```bash
-./gradlew build
+git clone https://github.com/EKarpinsky/runelite-level-up-table.git
+cd runelite-level-up-table
+./gradlew build --no-daemon
 ```
 
-### Testing
+This compiles the plugin, runs the tests, and writes `build/libs/runelite-skill-unlocks-1.0-SNAPSHOT.jar`. On Windows, use `gradlew.bat` in place of `./gradlew`.
+
+## Run locally
+
+Build the development client JAR and launch it:
+
 ```bash
-./gradlew test
+./gradlew shadowJar --no-daemon
+java -ea -jar build/libs/runelite-skill-unlocks-1.0-SNAPSHOT-all.jar
 ```
 
-### Running in Developer Mode
-```bash
-# Build and run with test client
-./gradlew runClient
+On macOS, use the included `./run.sh` wrapper instead. It builds the same JAR and launches it with the macOS compatibility flags.
 
-# Or use the convenient launcher (macOS)
-./RuneLite-LevelUpTable.command
+The JAR starts RuneLite with Skill Unlocks loaded through `SkillUnlocksPluginRunner`. A desktop display and network access are required. Log in to OSRS to see progress based on your character's levels; no game account is needed to build or run the tests.
+
+1. Open **Skill Unlocks** in RuneLite's sidebar. Enable it in the plugin settings if needed.
+2. Select a skill, then browse or search its unlocks.
+3. Use the filters to narrow the list and the wiki buttons to read more.
+
+## How it works
+
+- [`WikiTextParser`](src/main/java/com/runelite/skillunlocks/service/parser/WikiTextParser.java) extracts unlocks, levels, and requirements from the wiki's `Level up table` markup, including `plink` and `SCP` templates.
+- [`WikiHttpClient`](src/main/java/com/runelite/skillunlocks/api/WikiHttpClient.java) fetches OSRS Wiki pages with a 1 request/second rate limit.
+- [`CacheManager`](src/main/java/com/runelite/skillunlocks/cache/CacheManager.java) stores JSON in `~/.runelite/level-up-table/`. It debounces saves and uses file locks; `UnlockRepository` coordinates the cache and wiki data.
+
+## Tests and CI
+
+```bash
+./gradlew test --no-daemon
 ```
 
-## Contributing
+Parser tests live in `src/test/java/com/runelite/skillunlocks/service/parser/`. The HTML report is written to `build/reports/tests/test/index.html`.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+GitHub Actions runs `./gradlew build --no-daemon` on pushes and pull requests with JDK 11, matching the Java release target in `build.gradle`. RuneLite dependencies use `latest.release`, so builds require network access and can be affected by upstream releases.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## Screenshot
 
-## Technical Details
+![Skill Unlocks sidebar showing Attack unlocks filtered by rune](docs/panel.png)
 
-### Architecture
-- **Data Source**: OSRS Wiki API (MediaWiki) - parses level up tables
-- **Caching**: Local JSON cache in `~/.runelite/level-up-table/`
-- **Parser**: Custom wiki markup parser supporting templates and links
-- **UI Framework**: Swing with custom modern components
+Skill Unlocks panel with live OSRS Wiki data, searching Attack unlocks for `rune`.
 
-### Key Components
-- `WikiClient`: Handles API communication with OSRS Wiki
-- `WikiTextParser`: Parses wiki markup and extracts unlock data
-- `UnlockRepository`: Manages data storage and caching
-- `ModernSkillUnlockPanel`: Main UI with search, filters, and cards
+Regenerate with `scripts/capture/panel.sh` (Linux, Xvfb).
 
-### Performance Optimizations
-- Concurrent skill data fetching
-- Lazy loading of skill content
-- Virtual scrolling for large unlock lists
-- Debounced search input
+## License and credits
 
-## License
-
-This project is licensed under the BSD 2-Clause License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- [RuneLite](https://runelite.net) developers for the plugin framework
-- [OSRS Wiki](https://oldschool.runescape.wiki) contributors for maintaining skill unlock data
-- The OSRS community for feedback and suggestions
+[BSD 2-Clause](LICENSE). Built on the [RuneLite](https://runelite.net) plugin framework with data from the [OSRS Wiki](https://oldschool.runescape.wiki).

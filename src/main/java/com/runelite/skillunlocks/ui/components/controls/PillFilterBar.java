@@ -43,7 +43,7 @@ public class PillFilterBar extends JPanel implements Serializable
     }
 	
 	private static final int PILL_HEIGHT = 28;
-	private static final int PILL_PADDING = 16;
+	private static final int PILL_PADDING = 8;
 	private static final int PILL_SPACING = 6;
 	private static final Color PILL_BG = new Color(45, 45, 50);
 	private static final Color PILL_SELECTED = ColorScheme.BRAND_ORANGE;
@@ -62,8 +62,8 @@ public class PillFilterBar extends JPanel implements Serializable
 		setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		setBorder(new EmptyBorder(5, 10, 5, 10));
 		
-		// Create scrollable pill container
-		JPanel pillContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, PILL_SPACING, 0));
+		// Keep every filter visible at the default sidebar width.
+		JPanel pillContainer = new JPanel(new GridLayout(0, 3, PILL_SPACING, PILL_SPACING));
 		pillContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		
 		// Add filter pills
@@ -79,29 +79,14 @@ public class PillFilterBar extends JPanel implements Serializable
 			}
 		}
 		
-		// Wrap in scroll pane for horizontal scrolling
-		JScrollPane scrollPane = new JScrollPane(pillContainer);
-		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-		scrollPane.setBorder(null);
-		scrollPane.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		scrollPane.getViewport().setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		scrollPane.setPreferredSize(new Dimension(0, PILL_HEIGHT + 4));
-		
-		// Custom scrollbar styling
-		JScrollBar hBar = scrollPane.getHorizontalScrollBar();
-		hBar.setPreferredSize(new Dimension(0, 6));
-		hBar.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-		hBar.setUI(new ModernScrollBarUI());
-		
-		add(scrollPane, BorderLayout.CENTER);
+		add(pillContainer, BorderLayout.CENTER);
 		
 		// Result count label
-		resultCountLabel = new JLabel("");
+		resultCountLabel = new JLabel("", SwingConstants.RIGHT);
 		resultCountLabel.setFont(FontManager.getRunescapeSmallFont());
 		resultCountLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-		resultCountLabel.setBorder(new EmptyBorder(0, 10, 0, 0));
-		add(resultCountLabel, BorderLayout.EAST);
+		resultCountLabel.setBorder(new EmptyBorder(5, 0, 0, 0));
+		add(resultCountLabel, BorderLayout.SOUTH);
 	}
 	
 	private class PillButton extends JComponent
@@ -236,62 +221,6 @@ public class PillFilterBar extends JPanel implements Serializable
 		else
 		{
 			resultCountLabel.setText(shown + "/" + total);
-		}
-	}
-	
-	// Custom scrollbar UI for modern look
-	private static class ModernScrollBarUI extends javax.swing.plaf.basic.BasicScrollBarUI
-	{
-		@Override
-		protected void configureScrollBarColors()
-		{
-			thumbColor = new Color(80, 80, 80);
-			trackColor = ColorScheme.DARKER_GRAY_COLOR;
-		}
-		
-		@Override
-		protected JButton createDecreaseButton(int orientation)
-		{
-			return createInvisibleButton();
-		}
-		
-		@Override
-		protected JButton createIncreaseButton(int orientation)
-		{
-			return createInvisibleButton();
-		}
-		
-		private JButton createInvisibleButton()
-		{
-			JButton button = new JButton();
-			button.setPreferredSize(new Dimension(0, 0));
-			button.setMinimumSize(new Dimension(0, 0));
-			button.setMaximumSize(new Dimension(0, 0));
-			return button;
-		}
-		
-		@Override
-		protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds)
-		{
-			if (thumbBounds.isEmpty() || !scrollbar.isEnabled())
-			{
-				return;
-			}
-			
-			Graphics2D g2d = (Graphics2D) g.create();
-			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			
-			g2d.setColor(thumbColor);
-			g2d.fillRoundRect(thumbBounds.x, thumbBounds.y + 1,
-				thumbBounds.width, thumbBounds.height - 2, 4, 4);
-			
-			g2d.dispose();
-		}
-		
-		@Override
-		protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds)
-		{
-			// Don't paint track
 		}
 	}
 	

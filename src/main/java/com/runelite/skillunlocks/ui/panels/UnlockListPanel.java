@@ -143,6 +143,8 @@ public class UnlockListPanel extends JPanel implements Serializable
 				}
 			}
 			
+			updateSpacerVisibility(card.getContentPanel());
+
 			// Hide entire card if no visible content
 			card.setVisible(hasVisibleContent);
 			
@@ -153,8 +155,26 @@ public class UnlockListPanel extends JPanel implements Serializable
 			}
 		}
 		
+		updateSpacerVisibility(contentPanel);
 		contentPanel.revalidate();
 		contentPanel.repaint();
+	}
+
+	private void updateSpacerVisibility(JPanel panel)
+	{
+		// A hidden card must not leave its trailing spacing in the list.
+		boolean previousVisible = true;
+		for (Component component : panel.getComponents())
+		{
+			if (component instanceof Box.Filler)
+			{
+				component.setVisible(previousVisible);
+			}
+			else
+			{
+				previousVisible = component.isVisible();
+			}
+		}
 	}
 	
 	/**
